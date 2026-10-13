@@ -1,0 +1,95 @@
+{
+    "name": "wilycode/database-repository",
+    "description": "Model repositories for PHP with eager loading, safe CRUD, relationship persistence, filters and pagination.",
+    "type": "library",
+    "license": "MIT",
+    "require": {
+        "php": "^8.4",
+        "ext-ctype": "*",
+        "ext-mbstring": "*",
+        "psr/http-message": "^2.0",
+        "wilycode/database-model": "^0.1",
+        "wilycode/database-query": "^0.1",
+        "wilycode/database-query-executor": "^0.1"
+    },
+    "require-dev": {
+        "nyholm/psr7": "^1.8",
+        "phpunit/phpunit": "^11.0",
+        "wilycode/database-driver-pdo": "^0.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "WilyCode\\Database\\Repository\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "WilyCode\\Database\\Repository\\Tests\\": "tests/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Simon Piter"
+        }
+    ],
+    "scripts": {
+        "test": "phpunit"
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    },
+    "archive": {
+        "exclude": [
+            "/tests",
+            "/examples",
+            "/docs",
+            "/benchmark",
+            "/benchmarks",
+            "/tools",
+            "/phpunit.xml",
+            "/phpunit.xml.dist",
+            "/AGENTS.md",
+            "/CHANGELOG.md",
+            "/CONTRIBUTING.md",
+            "/CODE_OF_CONDUCT.md",
+            "/SECURITY.md",
+            "/composer.lock",
+            "/.github",
+            "/.gitignore",
+            "/.gitattributes",
+            "/.editorconfig",
+            "/.phpunit.cache",
+            "/.phpunit.result.cache",
+            "/phpstan.neon",
+            "/phpstan.neon.dist",
+            "/phpstan.*.neon",
+            "/phpstan.*.neon.dist",
+            "/pint.json",
+            "/rector.php",
+            "/psalm.xml",
+            "/psalm.xml.dist",
+            "/infection.json",
+            "/infection.json.dist"
+        ]
+    },
+    "keywords": [
+        "wilycode",
+        "database",
+        "repository",
+        "orm",
+        "query-builder",
+        "models",
+        "eager-loading",
+        "relationships",
+        "filtering",
+        "pagination",
+        "php"
+    ],
+    "homepage": "https://github.com/wilycode/database-repository",
+    "support": {
+        "issues": "https://github.com/wilycode/database-repository/issues",
+        "source": "https://github.com/wilycode/database-repository"
+    }
+}

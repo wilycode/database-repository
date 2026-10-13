@@ -1,0 +1,54 @@
+name: Tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  phpunit:
+    name: PHP 8.4 / MySQL 8.4
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: test-password
+          MYSQL_DATABASE: wilycode_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -ptest-password"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=12
+
+    env:
+      WILYCODE_TEST_DSN: 'mysql:host=127.0.0.1;port=3306;dbname=wilycode_test;charset=utf8mb4'
+      WILYCODE_TEST_USER: root
+      WILYCODE_TEST_PASS: test-password
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: pdo_mysql, mbstring, ctype
+          tools: composer:v2
+          coverage: none
+
+      - name: Validate Composer package
+        run: composer validate --strict
+
+      - name: Verify PDO MySQL extension
+        run: |
+          php -r "exit(in_array('mysql', PDO::getAvailableDrivers(), true) ? 0 : 1);"
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Run PHPUnit
+        run: composer test
