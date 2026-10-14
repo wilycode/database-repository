@@ -87,10 +87,10 @@ composer require wilycode/database-repository
 Choose a database adapter, for example:
 
 ```bash
-composer require wilycode/database-driver-pdo
+composer require wilycode/database-pdo
 ```
 
-Or use `wilycode/database-driver-mysqli` with its corresponding binder. Installing the repository alone does not establish a database connection.
+Or use `wilycode/database-mysqli` with its corresponding binder. Installing the repository alone does not establish a database connection.
 
 ## Quick start
 
@@ -557,8 +557,8 @@ The core repository depends on the executor interface, not a particular adapter.
 | [`wilycode/database-model`](https://github.com/wilycode/database-model) | Attribute-based models, metadata and hydration |
 | [`wilycode/database-query`](https://github.com/wilycode/database-query) | SQL query builder and compiled parameter representation |
 | [`wilycode/database-query-executor`](https://github.com/wilycode/database-query-executor) | Driver-independent query execution interface |
-| [`wilycode/database-driver-pdo`](https://github.com/wilycode/database-driver-pdo) | PDO driver and binder |
-| [`wilycode/database-driver-mysqli`](https://github.com/wilycode/database-driver-mysqli) | MySQLi driver and binder |
+| [`wilycode/database-pdo`](https://github.com/wilycode/database-pdo) | PDO driver and binder |
+| [`wilycode/database-mysqli`](https://github.com/wilycode/database-mysqli) | MySQLi driver and binder |
 | [`wilycode/database-query-executor-cache`](https://github.com/wilycode/database-query-executor-cache) | Optional cached query executor |
 | [`wilycode/database-query-executor-profiler`](https://github.com/wilycode/database-query-executor-profiler) | Optional profiling decorators |
 

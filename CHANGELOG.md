@@ -2,6 +2,13 @@
 
 All notable changes to WilyCode Database Repository will be documented here.
 
+## [Unreleased]
+
+### Changed
+
+- Updated the PDO development dependency to `wilycode/database-pdo`.
+- Updated installation examples and related-package links to the renamed database packages.
+
 ## [0.1.0] - 2026-10-13
 
 ### Added
