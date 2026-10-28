@@ -151,17 +151,6 @@ class Repository
     }
 
     /**
-     * Convenience: paginate using a query specification (filters/sorts/includes).
-     *
-     * @return PaginationResult<T>
-     */
-    public function paginateBy(ListQueryInterface $query): PaginationResult
-    {
-        $q = $query->applyTo($this);
-        return $q->paginate(page: $query->page(), perPage: $query->perPage());
-    }
-
-    /**
      * Eager-load relationships.
      *
      * Examples:
