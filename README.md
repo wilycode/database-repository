@@ -5,7 +5,7 @@
 [![Tests](https://github.com/wilycode/database-repository/actions/workflows/tests.yml/badge.svg)](https://github.com/wilycode/database-repository/actions/workflows/tests.yml)
 [![Packagist](https://img.shields.io/packagist/v/wilycode/database-repository)](https://packagist.org/packages/wilycode/database-repository)
 
-**Attribute-based model repositories for PHP 8.4+.** Query models, eager-load relations, perform safe writes, synchronize relationships, and expose validated filtering, sorting and pagination for application lists.
+**Attribute-based model repositories for PHP 8.4+.** Query models, eager-load relations, perform safe writes, synchronize relationships, and paginate results without depending on HTTP request handling.
 
 > **WilyCode PHP Ecosystem**
 >
@@ -33,10 +33,6 @@
 - [Persisting models](#persisting-models)
 - [Synchronizing relationships](#synchronizing-relationships)
 - [Transactions](#transactions)
-- [HTTP list filters](#http-list-filters)
-  - [Supported query parameters](#supported-query-parameters)
-  - [Allowed filters, sorts and includes](#allowed-filters-sorts-and-includes)
-  - [Integrating with PSR-7 requests](#integrating-with-psr-7-requests)
 - [API reference](#api-reference)
 - [Errors and safety](#errors-and-safety)
 - [Architecture and driver integration](#architecture-and-driver-integration)
@@ -61,7 +57,7 @@
 
 The repository provides a small subclassing API for model-specific repositories. It delegates model writes to `ModelPersister`, relation writes to `RelationPersister`, and eager-load SQL to `EagerLoadCompiler`.
 
-**The repository does not open a database connection or implement a database driver.** Inject a configured `QueryExecutorInterface` and a model class. It also does not include an identity map, lazy-loading proxy or HTTP controller.
+**The repository does not open a database connection or implement a database driver.** Inject a configured `QueryExecutorInterface` and a model class. It also does not include an identity map, lazy-loading proxy, HTTP request parser or controller.
 
 Query modifiers such as `where()`, `orderBy()` and `with()` return **cloned repositories**, allowing safe reuse of a base repository configuration. Write operations work through the injected executor and have database side effects.
 
@@ -71,7 +67,6 @@ Query modifiers such as `where()`, `orderBy()` and `with()` return **cloned repo
 | --- | --- |
 | PHP | 8.4 or newer |
 | `ext-ctype`, `ext-mbstring` | Required PHP extensions |
-| `psr/http-message` | `^2.0` — PSR-7 request parsing for list filters |
 | `wilycode/database-model` | `^0.1` — model metadata and hydration |
 | `wilycode/database-query` | `^0.1` — SQL query builder |
 | `wilycode/database-query-executor` | `^0.1` — query execution interface |
@@ -278,6 +273,8 @@ Loaded relation state and a foreign-key-only reference are intentionally differe
 
 ## Pagination
 
+HTTP query parameters, user-supplied filter and sort allowlists, and pagination links belong in the application layer. Use `where()`, `whereIn()`, `whereLike()`, `orderBy()` and `with()` to construct the query before calling `paginate()`.
+
 ```php
 $page = $articles
     ->where('status', 'published')
@@ -296,7 +293,7 @@ echo $page->lastPage();
 
 `paginate()` runs a separate count query **without eager-load subqueries**, then fetches one page. `page` and `perPage` must be positive integers. The pagination result is `PaginationResult`, with `items`, `total`, `page`, `perPage` and `lastPage()`.
 
-The repository uses deterministic ordering: a default primary-key order, or a primary-key tie-breaker for custom sorting. Unlike request filter pagination described below, `paginate()` itself does not silently clamp an out-of-range page to the last available page.
+The repository uses deterministic ordering: a default primary-key order, or a primary-key tie-breaker for custom sorting. `paginate()` does not automatically clamp an out-of-range page to the last available page.
 
 ## Writing database rows
 
@@ -386,105 +383,6 @@ $articles->transaction(function (ArticleRepository $repo): void {
 
 The callback receives the **same repository instance**. The underlying executor controls transaction lifecycle and rollback. When using a transaction-aware decorator, follow that decorator's documented semantics for joining an existing transaction.
 
-## HTTP list filters
-
-`AbstractListFilter` defines **allowlisted** request parameters without mixing request parsing into your repository class.
-
-### Supported query parameters
-
-```text
-?page=2&perPage=20
-&filter[status]=published
-&filter[createdAt][from]=2026-01-01
-&filter[createdAt][to]=2026-01-31
-&sort=-publishedAt,title
-&include=author:id|name,tags
-```
-
-| Parameter | Meaning |
-| --- | --- |
-| `page` | Positive page number (default `1`) |
-| `perPage` | Positive items per page (default `20`, maximum `200`) |
-| `filter[name]` | Named filter in the allowlist |
-| `sort` | Comma-separated sort names; prefix `-` for descending |
-| `include` | Comma-separated allowed relation paths; optional `:col1|col2` projection |
-
-Invalid syntax raises `InvalidArgumentException`. In strict mode (the default), unknown filters, sorts and includes are rejected instead of ignored.
-
-### Allowed filters, sorts and includes
-
-```php
-use WilyCode\Database\Repository\ListQuery\AbstractListFilter;
-use WilyCode\Database\Repository\ListQuery\AllowedFilter;
-use WilyCode\Database\Repository\ListQuery\AllowedInclude;
-use WilyCode\Database\Repository\ListQuery\AllowedSort;
-
-final class ArticleListFilter extends AbstractListFilter
-{
-    protected function allowedFilters(): array
-    {
-        return [
-            AllowedFilter::partial('search', 'title'),
-            AllowedFilter::oneOf('status', ['draft', 'published', 'archived']),
-            AllowedFilter::bool('featured', 'is_featured'),
-            AllowedFilter::dateRange('createdAt', 'created_at'),
-        ];
-    }
-
-    protected function allowedSorts(): array
-    {
-        return [
-            AllowedSort::field('title'),
-            AllowedSort::field('publishedAt', 'published_at'),
-        ];
-    }
-
-    protected function defaultSorts(): array
-    {
-        return ['-publishedAt', 'title'];
-    }
-
-    protected function allowedIncludes(): array
-    {
-        return [
-            AllowedInclude::simple('author'),
-            AllowedInclude::tree('comments'),
-        ];
-    }
-}
-```
-
-These are example field and relation names; adapt them to your model metadata and schema. The available filter factories are `exact()`, `partial()`, `bool()`, `dateRange()`, `oneOf()` and `callback()`; sort factories include `field()` and `callback()`, and include factories include `simple()`, `tree()` and `callback()`.
-
-`AllowedInclude::tree('comments')` allows nested include paths such as `comments.createdBy`; `simple()` permits only the named relation.
-
-### Integrating with PSR-7 requests
-
-```php
-// $request is a PSR-7 ServerRequestInterface.
-$filter = ArticleListFilter::fromRequest($request);
-$page = $articles->paginateBy($filter);
-
-// Or use a parsed array without a PSR-7 request:
-$filter = ArticleListFilter::fromQuery([
-    'page' => '2',
-    'filter' => ['status' => 'published'],
-    'sort' => '-publishedAt',
-]);
-```
-
-Use `strict: false` when unknown filter/sort/include keys should be ignored, rather than rejected. Syntax validation still applies.
-
-For custom list views that calculate a total separately, use:
-
-```php
-$resolved = $filter->withPagination(total: 120);
-$pagination = $resolved->getPagination();
-// ['page' => ..., 'pageCount' => ..., 'perPage' => ..., 'total' => ..., 'from' => ..., 'to' => ...]
-```
-
-`withPagination()` clamps an out-of-range page to the last available page; empty results resolve to page `1`, with `from` and `to` equal to `0`. `getPagination()` throws if pagination has not been resolved. `paginateBy()` returns a `PaginationResult` rather than this view-data array.
-
 ## API reference
 
 | Method | Arguments (main) | Returns / behavior |
@@ -500,7 +398,6 @@ $pagination = $resolved->getPagination();
 | `find()` / `findOrThrow()` | model ID | Optional model / model or exception |
 | `findOneOrThrow()` | optional error message | Model or exception |
 | `paginate()` | page, perPage | `PaginationResult` |
-| `paginateBy()` | `ListQueryInterface` | `PaginationResult` |
 | `insert()` / `insertMany()` | row / rows | Last ID string / affected rows |
 | `update()` / `delete()` | values / — | Affected rows; requires WHERE |
 | `createModel()` / `updateModel()` | model | Persisted model |
@@ -522,7 +419,6 @@ $pagination = $resolved->getPagination();
 | Persisted read hydrates missing primary key | `RuntimeException` |
 | Unfiltered `update()` or `delete()` | `UnsafeWriteException` |
 | Invalid sort direction or pagination value | `InvalidArgumentException` |
-| Unknown list filter, sort or include (strict mode) | `InvalidArgumentException` |
 | Unknown relation or condition field in `with()` | Exception from relation compiler |
 | Driver, query or transaction failure | Underlying executor/driver exception propagates |
 
