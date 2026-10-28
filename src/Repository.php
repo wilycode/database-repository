@@ -17,7 +17,6 @@ use WilyCode\Database\Query\Statement\Select;
 use WilyCode\Database\Query\Statement\Update;
 use WilyCode\Database\QueryExecutor\QueryExecutorInterface;
 use WilyCode\Database\Repository\EagerLoading\EagerLoadCompiler;
-use WilyCode\Database\Repository\ListQuery\ListQueryInterface;
 use WilyCode\Database\Repository\Persistence\ModelPersister;
 use WilyCode\Database\Repository\Persistence\RelationPersister;
 use WilyCode\Database\Repository\Exception\ModelNotFoundException;
