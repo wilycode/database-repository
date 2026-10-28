@@ -4,6 +4,12 @@ All notable changes to WilyCode Database Repository will be documented here.
 
 ## [Unreleased]
 
+### Breaking changes (planned for v0.2.0)
+
+- Removed the HTTP/list-query layer (`AbstractListFilter`, `AllowedFilter`, `AllowedSort`, `AllowedInclude`, `ListQueryRequest`, `ListQueryInterface`) and `Repository::paginateBy()`.
+- Applications using list filters must own their request parsing and allowlists and build repository queries with `where()`, `orderBy()`, `with()` and `paginate()`. The previous implementation remains available from the `v0.1.1` tag for migration reference.
+- Removed the direct `psr/http-message` dependency and the `nyholm/psr7` development dependency; repository CRUD, relation persistence and `PaginationResult` remain available.
+
 ### Changed
 
 - Updated the PDO development dependency to `wilycode/database-pdo`.
