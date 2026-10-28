@@ -1,19 +1,17 @@
 {
     "name": "wilycode/database-repository",
-    "description": "Model repositories for PHP with eager loading, safe CRUD, relationship persistence, filters and pagination.",
+    "description": "Model repositories for PHP with eager loading, safe CRUD, relationship persistence and pagination.",
     "type": "library",
     "license": "MIT",
     "require": {
         "php": "^8.4",
         "ext-ctype": "*",
         "ext-mbstring": "*",
-        "psr/http-message": "^2.0",
         "wilycode/database-model": "^0.1",
         "wilycode/database-query": "^0.1",
         "wilycode/database-query-executor": "^0.1"
     },
     "require-dev": {
-        "nyholm/psr7": "^1.8",
         "phpunit/phpunit": "^11.0",
         "wilycode/database-pdo": "^0.1"
     },
@@ -37,7 +35,7 @@
     },
     "extra": {
         "branch-alias": {
-            "dev-main": "0.1.x-dev"
+            "dev-main": "0.2.x-dev"
         }
     },
     "archive": {
@@ -83,7 +81,6 @@
         "models",
         "eager-loading",
         "relationships",
-        "filtering",
         "pagination",
         "php"
     ],

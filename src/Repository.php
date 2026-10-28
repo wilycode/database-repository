@@ -17,7 +17,6 @@ use WilyCode\Database\Query\Statement\Select;
 use WilyCode\Database\Query\Statement\Update;
 use WilyCode\Database\QueryExecutor\QueryExecutorInterface;
 use WilyCode\Database\Repository\EagerLoading\EagerLoadCompiler;
-use WilyCode\Database\Repository\ListQuery\ListQueryInterface;
 use WilyCode\Database\Repository\Persistence\ModelPersister;
 use WilyCode\Database\Repository\Persistence\RelationPersister;
 use WilyCode\Database\Repository\Exception\ModelNotFoundException;
@@ -148,17 +147,6 @@ class Repository
         $clone = clone $this;
         $clone->orders[] = ['column' => $expression, 'direction' => $direction, 'raw' => true];
         return $clone;
-    }
-
-    /**
-     * Convenience: paginate using a query specification (filters/sorts/includes).
-     *
-     * @return PaginationResult<T>
-     */
-    public function paginateBy(ListQueryInterface $query): PaginationResult
-    {
-        $q = $query->applyTo($this);
-        return $q->paginate(page: $query->page(), perPage: $query->perPage());
     }
 
     /**
