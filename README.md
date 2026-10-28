@@ -275,6 +275,18 @@ Loaded relation state and a foreign-key-only reference are intentionally differe
 
 HTTP query parameters, user-supplied filter and sort allowlists, and pagination links belong in the application layer. Use `where()`, `whereIn()`, `whereLike()`, `orderBy()` and `with()` to construct the query before calling `paginate()`.
 
+When a sort column comes from a user-facing filter, map it to an **allowlist** of known database columns before calling `orderBy()`:
+
+```php
+$sortColumns = ['title' => 'title', 'newest' => 'created_at'];
+$column = $sortColumns[$requestedSort] ?? 'created_at';
+$direction = $requestedDirection === 'asc' ? 'ASC' : 'DESC';
+
+$page = $articles->orderBy($column, $direction)->paginate(page: 1, perPage: 20);
+```
+
+The repository deliberately does **not** parse the HTTP request or validate application-specific filter names. Do not pass untrusted SQL column identifiers directly to `orderBy()` or `whereRaw()`.
+
 ```php
 $page = $articles
     ->where('status', 'published')
