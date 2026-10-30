@@ -52,3 +52,45 @@ jobs:
 
       - name: Run PHPUnit
         run: composer test
+
+  portable:
+    name: PHP 8.4 / ${{ matrix.database }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        database: [PostgreSQL, SQLite]
+        include:
+          - database: PostgreSQL
+            dsn: 'pgsql:host=127.0.0.1;port=5432;dbname=wilycode_test'
+          - database: SQLite
+            dsn: 'sqlite::memory:'
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: wilycode_test
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test-password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U test -d wilycode_test"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=12
+    env:
+      WILYCODE_TEST_DSN: ${{ matrix.dsn }}
+      WILYCODE_TEST_USER: test
+      WILYCODE_TEST_PASS: test-password
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: pdo_pgsql, pdo_sqlite, mbstring, ctype
+          tools: composer:v2
+          coverage: none
+      - run: composer validate --strict
+      - run: composer install --no-interaction --prefer-dist --no-progress
+      - run: composer test

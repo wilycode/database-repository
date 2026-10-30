@@ -71,7 +71,7 @@ Query modifiers such as `where()`, `orderBy()` and `with()` return **cloned repo
 | `wilycode/database-query` | `^0.1` — SQL query builder |
 | `wilycode/database-query-executor` | `^0.1` — query execution interface |
 
-The concrete PDO or MySQLi driver is installed separately. Eager-loading queries use **MySQL-oriented JSON SQL functions**, so use a compatible database and verify the generated SQL on your server.
+The concrete PDO or MySQLi driver is installed separately. The executor automatically selects MySQL, PostgreSQL or SQLite SQL, including eager-loading JSON expressions.
 
 ## Installation
 
@@ -456,7 +456,7 @@ App repository (extends Repository)
      MysqliBinder + MysqliDatabase
 ```
 
-The core repository depends on the executor interface, not a particular adapter. Optional query-cache or profiling executors may be injected when their semantics fit your application. Eager-loading SQL uses MySQL JSON functions; it should not be assumed portable to every SQL backend without testing.
+The core repository depends on the executor interface, not a particular adapter. Optional query-cache or profiling executors may be injected when their semantics fit your application. The executor selects the dialect from the database connection. Eager-loading JSON expressions are compiled for MySQL, PostgreSQL or SQLite. Raw SQL passed by the application remains database-specific.
 
 ## Related packages
 
@@ -478,7 +478,7 @@ composer validate --strict
 composer test
 ```
 
-Unit tests run without a database. Integration tests require a **dedicated disposable MySQL/MariaDB schema** and can create or drop test tables:
+Unit tests run without a database. Integration tests require a **dedicated disposable database** and can create or drop test tables:
 
 ```bash
 export WILYCODE_TEST_DSN='mysql:host=127.0.0.1;dbname=wilycode_test;charset=utf8mb4'
@@ -487,7 +487,7 @@ export WILYCODE_TEST_PASS='your-test-password'
 composer test
 ```
 
-If `WILYCODE_TEST_DSN` is absent, integration tests are skipped. GitHub Actions runs the suite with MySQL 8.4 and the `pdo_mysql` extension so those tests are exercised automatically.
+If `WILYCODE_TEST_DSN` is absent, integration tests are skipped. GitHub Actions runs the full suite on MySQL 8.4, PostgreSQL 16 and SQLite. For PostgreSQL use `WILYCODE_TEST_DSN="pgsql:host=127.0.0.1;dbname=wilycode_test"`; for SQLite use `WILYCODE_TEST_DSN="sqlite::memory:"`.
 
 Source tests remain in the repository but are excluded from Composer distribution archives.
 
@@ -496,3 +496,17 @@ Source tests remain in the repository but are excluded from Composer distributio
 Issues and pull requests are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) or open an [issue](https://github.com/wilycode/database-repository/issues).
 
 MIT © 2026 Simon Piter. See [LICENSE](LICENSE).
+
+### Upgrading to the dialect-aware query packages
+
+This package requires `wilycode/database-query ^0.2` and `wilycode/database-query-executor ^0.2`.
+Use `wilycode/database-pdo ^0.1.2` (PDO MySQL, PostgreSQL or SQLite) or `wilycode/database-mysqli ^0.1.2` (MySQL).
+Construct the executor with the connection and binder as usual; `Query::dialectDefault()` is not needed.
+Custom database adapters must expose `PlatformProviderInterface` or receive an explicit dialect in the executor constructor.
+Changing the DSN does not migrate an application's existing schema or rewrite its raw SQL.
+
+```php
+$db = PdoDatabase::connect('pgsql:host=127.0.0.1;dbname=app', 'app', 'password');
+$executor = new QueryExecutor($db, new PdoBinder());
+$repository = new ArticleRepository($executor);
+```

@@ -20,13 +20,13 @@ final class ModelOpsTest extends DbTestCase
 
         // Schema reset per test (safe & deterministic)
         $this->execSql('DROP TABLE IF EXISTS articles');
-        $this->execSql(<<<SQL
+        $this->execSchema(<<<SQL
 CREATE TABLE articles (
-  id INT AUTO_INCREMENT PRIMARY KEY,
+  id {identity},
   title VARCHAR(255) NOT NULL,
   status INT NOT NULL DEFAULT 0,
   user_id INT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+)
 SQL);
 
         $this->repo = new ArticleRepository(self::$executor);

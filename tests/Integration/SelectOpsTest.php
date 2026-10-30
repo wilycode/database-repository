@@ -24,12 +24,12 @@ final class SelectOpsTest extends DbTestCase
 
         // Recreate schema
         $this->execSql('DROP TABLE IF EXISTS articles');
-        $this->execSql('CREATE TABLE articles (
-              id INT AUTO_INCREMENT PRIMARY KEY,
+        $this->execSchema('CREATE TABLE articles (
+              id {identity},
               title VARCHAR(255) NOT NULL,
               status INT NOT NULL DEFAULT 0,
               user_id INT NULL
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4');
+            )');
 
         // Seed
         $this->repo->insertMany([
@@ -39,6 +39,15 @@ final class SelectOpsTest extends DbTestCase
             ['title' => 'Fourth', 'status' => 1, 'user_id' => 12],
             ['title' => 'Fifth',  'status' => 1, 'user_id' => 13],
         ]);
+    }
+
+    public function testPortableInAndLikeFiltersAndEmptyIn(): void
+    {
+        $items = $this->repo->whereIn('status', [1])->whereLike('title', 'ir')->findAll();
+        $titles = array_map(static fn(Article $article) => $article->getTitle(), $items);
+        sort($titles);
+        $this->assertSame(['First', 'Third'], $titles);
+        $this->assertSame([], $this->repo->whereIn('id', [])->findAll());
     }
 
     public function testFindAllHydratesModels(): void

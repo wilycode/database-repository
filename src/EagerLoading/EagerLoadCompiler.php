@@ -110,7 +110,7 @@ final class EagerLoadCompiler
                 $pkDb = $relatedAttr->getPrimaryKeyDbName();
 
                 $sub->columnExp('rel', $json)
-                    ->whereRaw(sprintf('%s.%s = %s.%s', $relatedAlias, $pkDb, $ownerRef, $fkDb))
+                    ->whereColumn($relatedAlias . '.' . $pkDb, $ownerRef . '.' . $fkDb)
                     ->limit(1);
 
                 return new Subquery($sub);
@@ -121,7 +121,7 @@ final class EagerLoadCompiler
             $pkDb = $ownerAttr->getPrimaryKeyDbName();
 
             $sub->columnExp('rel', $json)
-                ->whereRaw(sprintf('%s.%s = %s.%s', $relatedAlias, $fkDb, $ownerRef, $pkDb))
+                ->whereColumn($relatedAlias . '.' . $fkDb, $ownerRef . '.' . $pkDb)
                 ->limit(1);
 
             return new Subquery($sub);
@@ -143,7 +143,7 @@ final class EagerLoadCompiler
                 ensureDbColumns: [$fkDb]
             );
 
-            $sub->whereRaw(sprintf('%s.%s = %s.%s', $relatedAlias, $fkDb, $ownerRef, $pkDb));
+            $sub->whereColumn($relatedAlias . '.' . $fkDb, $ownerRef . '.' . $pkDb);
 
             return JsonArraySubquery::of($sub, $json, coalesceEmptyArray: true, distinct: false);
         }
@@ -162,7 +162,8 @@ final class EagerLoadCompiler
         $ownerPkDb = $ownerAttr->getPrimaryKeyDbName();
 
         $sub = Query::select($relatedTable, $relatedAlias)
-            ->join($pivotTable, $pivotAlias, sprintf('%s.%s = %s.%s', $pivotAlias, $pivotColumnRelated, $relatedAlias, $relatedPkDb));
+            ->join($pivotTable, $pivotAlias, '1 = 1')
+            ->whereColumn($pivotAlias . '.' . $pivotColumnRelated, $relatedAlias . '.' . $relatedPkDb);
         $this->applyRelationConditions($sub, $relatedClass, $relatedAttr, $relatedAlias, $node->conditions);
 
         $json = $this->buildJsonObject(
@@ -173,7 +174,7 @@ final class EagerLoadCompiler
             children: $node->children
         );
 
-        $sub->whereRaw(sprintf('%s.%s = %s.%s', $pivotAlias, $pivotColumnOwner, $ownerRef, $ownerPkDb));
+        $sub->whereColumn($pivotAlias . '.' . $pivotColumnOwner, $ownerRef . '.' . $ownerPkDb);
 
         // MariaDB is picky about JSON_ARRAYAGG(DISTINCT JSON_OBJECT(...)) and may throw SQL 1064.
         // In our test schema the pivot does not produce duplicates, so we can safely aggregate without DISTINCT.

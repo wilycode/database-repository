@@ -4,7 +4,16 @@ All notable changes to WilyCode Database Repository will be documented here.
 
 ## [Unreleased]
 
-### Breaking changes (planned for v0.2.0)
+### Changed (planned for v0.2.1)
+
+- Defer pagination count compilation until the executor supplies the connection dialect; PostgreSQL no longer receives MySQL backticks.
+- Require database-query and database-query-executor ^0.2 for automatic MySQL, PostgreSQL and SQLite dialect selection.
+- Use dialect-aware conditions for repository IN/LIKE filters and relation correlations/persistence.
+- Run CRUD, eager loading, pagination and relation transaction integration tests on MySQL, PostgreSQL and SQLite.
+
+## [0.2.0]
+
+### Breaking changes
 
 - Removed the HTTP/list-query layer (`AbstractListFilter`, `AllowedFilter`, `AllowedSort`, `AllowedInclude`, `ListQueryRequest`, `ListQueryInterface`) and `Repository::paginateBy()`.
 - Applications using list filters must own their request parsing and allowlists and build repository queries with `where()`, `orderBy()`, `with()` and `paginate()`. The previous implementation remains available from the `v0.1.1` tag for migration reference.

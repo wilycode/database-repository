@@ -210,14 +210,7 @@ class Repository
         array $values,
         string|LogicalOperator $logicalOperator = LogicalOperator::AND
     ): static {
-        if ($values === []) {
-            // Empty IN should match nothing.
-            return $this->whereRaw('1=0', [], $logicalOperator);
-        }
-
-        $placeholders = implode(', ', array_fill(0, count($values), '?'));
-        $cond = $column . ' IN (' . $placeholders . ')';
-        return $this->whereRaw($cond, array_values($values), $logicalOperator);
+        return $this->where($column, array_values($values), ComparisonOperator::IN, $logicalOperator);
     }
 
     /**
@@ -228,8 +221,7 @@ class Repository
         string $value,
         string|LogicalOperator $logicalOperator = LogicalOperator::AND
     ): static {
-        $cond = $column . ' LIKE ?';
-        return $this->whereRaw($cond, ['%' . $value . '%'], $logicalOperator);
+        return $this->where($column, '%' . $value . '%', ComparisonOperator::LIKE, $logicalOperator);
     }
 
     /**
@@ -348,7 +340,7 @@ class Repository
 
         // IMPORTANT: count query should NOT include eager-load subqueries.
         $baseNoWith = $this->buildSelect(includeWith: false);
-        $countQuery = $baseNoWith->forPaginationCount(countAlias: 'total');
+        $countQuery = new \WilyCode\Database\Repository\Query\PaginationCountQuery($baseNoWith);
         $total = (int) ($this->executor->fetchColumn($countQuery) ?? 0);
 
         $q = $this->buildSelect(includeWith: true)
