@@ -638,7 +638,7 @@ final class RelationPersister
     }
 
     /**
-     * Let the query builder quote identifiers and expand IN values for the active dialect.
+     * Let the query builder expand and bind IN values for the active dialect.
      *
      * @param array<int, string|int> $values
      */

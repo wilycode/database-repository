@@ -41,6 +41,15 @@ final class SelectOpsTest extends DbTestCase
         ]);
     }
 
+    public function testPortableInAndLikeFiltersAndEmptyIn(): void
+    {
+        $items = $this->repo->whereIn('status', [1])->whereLike('title', 'ir')->findAll();
+        $titles = array_map(static fn(Article $article) => $article->getTitle(), $items);
+        sort($titles);
+        $this->assertSame(['First', 'Third'], $titles);
+        $this->assertSame([], $this->repo->whereIn('id', [])->findAll());
+    }
+
     public function testFindAllHydratesModels(): void
     {
         $items = $this->repo->where('status', 1)->findAll();

@@ -6,6 +6,7 @@ All notable changes to WilyCode Database Repository will be documented here.
 
 ### Changed (planned for v0.2.1)
 
+- Defer pagination count compilation until the executor supplies the connection dialect; PostgreSQL no longer receives MySQL backticks.
 - Require database-query and database-query-executor ^0.2 for automatic MySQL, PostgreSQL and SQLite dialect selection.
 - Use dialect-aware conditions for repository IN/LIKE filters and relation correlations/persistence.
 - Run CRUD, eager loading, pagination and relation transaction integration tests on MySQL, PostgreSQL and SQLite.

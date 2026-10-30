@@ -340,7 +340,7 @@ class Repository
 
         // IMPORTANT: count query should NOT include eager-load subqueries.
         $baseNoWith = $this->buildSelect(includeWith: false);
-        $countQuery = $baseNoWith->forPaginationCount(countAlias: 'total');
+        $countQuery = new \WilyCode\Database\Repository\Query\PaginationCountQuery($baseNoWith);
         $total = (int) ($this->executor->fetchColumn($countQuery) ?? 0);
 
         $q = $this->buildSelect(includeWith: true)
