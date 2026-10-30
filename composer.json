@@ -8,12 +8,12 @@
         "ext-ctype": "*",
         "ext-mbstring": "*",
         "wilycode/database-model": "^0.1",
-        "wilycode/database-query": "^0.1",
-        "wilycode/database-query-executor": "^0.1"
+        "wilycode/database-query": "^0.2",
+        "wilycode/database-query-executor": "^0.2"
     },
     "require-dev": {
         "phpunit/phpunit": "^11.0",
-        "wilycode/database-pdo": "^0.1"
+        "wilycode/database-pdo": "^0.1.2"
     },
     "autoload": {
         "psr-4": {

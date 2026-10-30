@@ -24,12 +24,12 @@ final class SelectOpsTest extends DbTestCase
 
         // Recreate schema
         $this->execSql('DROP TABLE IF EXISTS articles');
-        $this->execSql('CREATE TABLE articles (
-              id INT AUTO_INCREMENT PRIMARY KEY,
+        $this->execSchema('CREATE TABLE articles (
+              id {identity},
               title VARCHAR(255) NOT NULL,
               status INT NOT NULL DEFAULT 0,
               user_id INT NULL
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4');
+            )');
 
         // Seed
         $this->repo->insertMany([

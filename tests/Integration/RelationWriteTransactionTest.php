@@ -32,43 +32,43 @@ final class RelationWriteTransactionTest extends DbTestCase
             $this->execSql('DROP TABLE IF EXISTS ' . $t);
         }
 
-        $this->execSql('CREATE TABLE users (
-            id INT AUTO_INCREMENT PRIMARY KEY,
+        $this->execSchema('CREATE TABLE users (
+            id {identity},
             name VARCHAR(191) NOT NULL
-        ) ENGINE=InnoDB');
+        )');
 
-        $this->execSql('CREATE TABLE category (
-            id INT AUTO_INCREMENT PRIMARY KEY,
+        $this->execSchema('CREATE TABLE category (
+            id {identity},
             name VARCHAR(191) NOT NULL,
             created_by_id INT NULL,
             updated_by_id INT NULL
-        ) ENGINE=InnoDB');
+        )');
 
-        $this->execSql('CREATE TABLE article (
-            id INT AUTO_INCREMENT PRIMARY KEY,
+        $this->execSchema('CREATE TABLE article (
+            id {identity},
             title VARCHAR(191) NOT NULL,
             status INT NOT NULL,
             category_id INT NULL
-        ) ENGINE=InnoDB');
+        )');
 
-        $this->execSql('CREATE TABLE tag (
-            id INT AUTO_INCREMENT PRIMARY KEY,
+        $this->execSchema('CREATE TABLE tag (
+            id {identity},
             name VARCHAR(191) NOT NULL,
             created_by_id INT NULL
-        ) ENGINE=InnoDB');
+        )');
 
-        $this->execSql('CREATE TABLE article_tag (
+        $this->execSchema('CREATE TABLE article_tag (
             article_id INT NOT NULL,
             tag_id INT NOT NULL,
             PRIMARY KEY (article_id, tag_id)
-        ) ENGINE=InnoDB');
+        )');
 
-        $this->execSql('CREATE TABLE comment (
-            id INT AUTO_INCREMENT PRIMARY KEY,
+        $this->execSchema('CREATE TABLE comment (
+            id {identity},
             content TEXT NULL,
             article_id INT NOT NULL,
             created_by_id INT NULL
-        ) ENGINE=InnoDB');
+        )');
 
         // Seed
         $this->execSql("INSERT INTO users (name) VALUES ('Alice'),('Bob'),('Charlie')");

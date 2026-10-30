@@ -81,7 +81,7 @@ final class RelationPersister
         ): array {
             // Fetch existing related IDs from pivot.
             $sq = Query::select($pivotTable, 'p');
-            $sq->columnRaw('rid', 'p.' . $foreignKey);
+            $sq->columns(['rid' => 'p.' . $foreignKey]);
             $sq->where('p.' . $linkingColumn, $ownerPk);
 
             /** @var array<int,array<string,mixed>> $rows */
@@ -117,7 +117,7 @@ final class RelationPersister
                 /** @var Delete $del */
                 $del = Query::delete($pivotTable);
                 $del->where($linkingColumn, $ownerPk);
-                $this->whereInRaw($del, $foreignKey, $toDetach);
+                $this->whereInValues($del, $foreignKey, $toDetach);
                 $ex->execute($del);
             }
 
@@ -188,7 +188,7 @@ final class RelationPersister
         ): array {
             // Load currently linked child IDs (before changes).
             $currentQ = Query::select($relatedTable, 'c');
-            $currentQ->columnRaw('cid', 'c.' . $relatedPkDb);
+            $currentQ->columns(['cid' => 'c.' . $relatedPkDb]);
             $currentQ->where('c.' . $fkDb, $ownerPk);
 
             /** @var array<int,array<string,mixed>> $currentRows */
@@ -269,14 +269,14 @@ final class RelationPersister
                     /** @var Delete $del */
                     $del = Query::delete($relatedTable);
                     $del->where($fkDb, $ownerPk);
-                    $this->whereInRaw($del, $relatedPkDb, $orphans);
+                    $this->whereInValues($del, $relatedPkDb, $orphans);
                     $ex->execute($del);
                     $deleted = count($orphans);
                 } else {
                     /** @var Update $u */
                     $u = Query::update($relatedTable)->set([$fkDb => null]);
                     $u->where($fkDb, $ownerPk);
-                    $this->whereInRaw($u, $relatedPkDb, $orphans);
+                    $this->whereInValues($u, $relatedPkDb, $orphans);
                     $ex->execute($u);
                     $detached = count($orphans);
                 }
@@ -360,7 +360,7 @@ final class RelationPersister
         ): array {
             // Load current children linked to owner (should be max 1, but we handle "dirty" data).
             $currentQ = Query::select($relatedTable, 'c');
-            $currentQ->columnRaw('cid', 'c.' . $relatedPkDb);
+            $currentQ->columns(['cid' => 'c.' . $relatedPkDb]);
             $currentQ->where('c.' . $fkDb, $ownerPk);
 
             /** @var array<int,array<string,mixed>> $currentRows */
@@ -436,14 +436,14 @@ final class RelationPersister
                     /** @var Delete $del */
                     $del = Query::delete($relatedTable);
                     $del->where($fkDb, $ownerPk);
-                    $this->whereInRaw($del, $relatedPkDb, $orphans);
+                    $this->whereInValues($del, $relatedPkDb, $orphans);
                     $ex->execute($del);
                     $deleted = count($orphans);
                 } else {
                     /** @var Update $u */
                     $u = Query::update($relatedTable)->set([$fkDb => null]);
                     $u->where($fkDb, $ownerPk);
-                    $this->whereInRaw($u, $relatedPkDb, $orphans);
+                    $this->whereInValues($u, $relatedPkDb, $orphans);
                     $ex->execute($u);
                     $detached = count($orphans);
                 }
@@ -638,21 +638,13 @@ final class RelationPersister
     }
 
     /**
-     * ParameterBag does not accept arrays, so we cannot do ->where($col, [1,2,3], 'IN')
-     * without expanding placeholders.
+     * Let the query builder quote identifiers and expand IN values for the active dialect.
      *
      * @param array<int, string|int> $values
      */
-    private function whereInRaw(WhereClause $q, string $column, array $values): void
+    private function whereInValues(WhereClause $q, string $column, array $values): void
     {
-        if ($values === []) {
-            // Force "no rows".
-            $q->whereRaw('1 = 0');
-            return;
-        }
-
-        $placeholders = implode(', ', array_fill(0, count($values), '?'));
-        $q->whereRaw($column . ' IN (' . $placeholders . ')', array_values($values));
+        $q->where($column, array_values($values), \WilyCode\Database\Query\Enum\ComparisonOperator::IN);
     }
 
     /**

@@ -22,13 +22,13 @@ final class TableOpsTest extends DbTestCase
         $this->execSql('DROP TABLE IF EXISTS articles');
         // NOTE: Do NOT use "\\n" inside single-quoted strings – PHP will not interpret it.
         // MariaDB then receives literal backslash-n and throws SQL 1064.
-        $this->execSql(<<<SQL
+        $this->execSchema(<<<SQL
 CREATE TABLE articles (
-  id INT AUTO_INCREMENT PRIMARY KEY,
+  id {identity},
   title VARCHAR(255) NOT NULL,
   status INT NOT NULL DEFAULT 0,
   user_id INT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+)
 SQL);
 
         $this->repo = new ArticleRepository(self::$executor);
